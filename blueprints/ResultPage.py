@@ -9,6 +9,7 @@ import calendar
 import numpy as np
 import time
 import cv2
+import requests
 home = Blueprint("search_result",__name__,url_prefix="/result")
 
 @home.route('/',methods=['GET','POST'])
@@ -36,11 +37,12 @@ def display_result():
             query_term['text'] = text
             # session['parsed_query'] = parsed_query
             session['real_tags'] = real_tags
-            # session['js_query_term'] = util.js_query(session['query_term'])
-            session['js_query_term'] = util.js_query(query_term)
+            # session['js_query_term'] = util.js_query(query_term)
+        form = dict(request.form)
+        js_query_term = util.js_query(query_term,form.get("img_feedback",""),form.get("Tag_feedback",""))
         mySearch.__close__()
         print('query parse time: %f s'%(round(time.time()-s_time,2)))
-        return render_template('ResultPage.html',all_content={'js_query_term':session['js_query_term'],'result_key':session['result_key'],
+        return render_template('ResultPage.html',all_content={'js_query_term':js_query_term,'result_key':session['result_key'],
                                                              'result_all':session['result_all'],'extra_info':session['extra_info']})
     elif request.method == 'POST' and request.form.get('search') :
         # click "Search"
@@ -61,14 +63,34 @@ def display_result():
         session['query_term']['text'] = request.form.get('text_input')
         session['result_key'] = img_key_list
         session['result_all'] = img_all_list
-        session['shot_id'] = dict( shot_id_dict, **session['shot_id'])
-        # session['js_query_term'] = util.js_query(session['query_term'],img_feedback_str,tag_feedback_str)
+        session['shot_id'] = shot_id_dict
+        js_query_term = util.js_query(session['query_term'],img_feedback_str,tag_feedback_str)
         # session['js_query_term'] = util.js_query(session['query_term'],img_feedback_str,tag_feedback_str)
         print('search time: %f s'%(round(time.time()-s_time,2)))
         # print('query term:::')
         # print(session['query_term'])
         # print(session['js_query_term'])
-        return render_template('ResultPage.html',all_content={'js_query_term':session['js_query_term'],'result_key':session['result_key'],
+        return render_template('ResultPage.html',all_content={'js_query_term':js_query_term,'result_key':session['result_key'],
+                                                             'result_all':session['result_all'],'extra_info':session['extra_info']})
+        # return render_template('ResultPage.html',all_content={'js_query_term':session['js_query_term'],'result_key':session['result_key'],
+        #                                                      'result_all':session['result_all'],'extra_info':session['extra_info']})
+    
+    elif request.method == 'POST' and request.form.get('Submit'):
+        form = dict(request.form)
+        result_id = form["submit_id"][0]
+        print(result_id)
+        if '.' in result_id:
+            result_id = result_id.split('.')[0]
+        url = 'https://vbs.itec.aau.at:9443/submit?item='+result_id
+        log = requests.get(url=url,
+                    headers={'cookie':'JSESSIONID=node07ggovm6dts531kvtu1p2xhnst1.node0'})
+        result = log.json()['description']
+        this_query,img_feedback_str, tag_feedback_str= \
+            util.get_query_term(dict(request.form),{'shot_id':session['shot_id'],'result_key':session['result_key'],'extra_info':session["extra_info"]})
+        js_query_term = util.js_query(session['query_term'],img_feedback_str,tag_feedback_str)
+        js_query_term["submit_id"] = result_id
+        js_query_term["submit_result"] = result
+        return render_template('ResultPage.html',all_content={'js_query_term':js_query_term,'result_key':session['result_key'],
                                                              'result_all':session['result_all'],'extra_info':session['extra_info']})
     else:
         session['js_query_term'] = util.js_query(session['query_term'])

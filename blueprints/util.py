@@ -214,9 +214,9 @@ def get_query_term(form,session={},rank_list_len=10):
         for line in t.split('\n'):
             line = line.split(' ')
             if len(line)<7 and len(line)>1:
-                query_term['img_feedback']['img'].append(session['shot_id'][line[1].strip()])
+                query_term['img_feedback']['img'].append(int(line[-1].strip()))
             elif len(line)>6:
-                query_term['img_feedback'][line[-1].strip()].append(session['shot_id'][line[-3].strip()])
+                query_term['img_feedback'][line[-1].strip()].append(int(line[-3].strip()))
     # print("REsult")
     # if 'result_key' in session:
     #     print(session["result_key"])
@@ -224,17 +224,22 @@ def get_query_term(form,session={},rank_list_len=10):
         if 'img_feedback' not in query_term:
             query_term['img_feedback'] = {'img':[],'location':[],'time':[]}
         # print(k)
+        if 'shot_id' in session:
+            try:
+                shotid = session['shot_id'][session['result_key'][k]]
+            except:
+                shotid = -1
         if 'img_checkbox'+str(k) in form:
-            img_feedback_list.append('exclude '+session['result_key'][k])#.split('.')[0])
-            query_term['img_feedback']['img'].append(session['shot_id'][session['result_key'][k]])
+            img_feedback_list.append('exclude shot '+str(shotid))#.split('.')[0])
+            query_term['img_feedback']['img'].append(shotid)
         if 'semantic_checkbox'+str(k) in form:
             # img_feedback_list.append('exclude images taken at '+str(int(session['extra_info'][k]["loc_date"][-5:-3]))+"o'clock")
-            img_feedback_list.append('exclude images similar to '+session['result_key'][k]+' in time')
-            query_term['img_feedback']['time'].append(session['shot_id'][session['result_key'][k]])
+            img_feedback_list.append('exclude images similar to shot '+str(shotid)+' in time')
+            query_term['img_feedback']['time'].append(shotid)
         if 'location_checkbox'+str(k) in form:
             # img_feedback_list.append('exclude images taken at '+session['extra_info'][k]["small_location"])
-            img_feedback_list.append('exclude images similar to '+session['result_key'][k]+' in location')
-            query_term['img_feedback']['location'].append(session['shot_id'][session['result_key'][k]])
+            img_feedback_list.append('exclude images similar to shot '+str(shotid)+' in location')
+            query_term['img_feedback']['location'].append(shotid)
 
     # for k in range(rank_list_len):
     #     if 'semantic_checkbox'+str(k) not in form:

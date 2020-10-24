@@ -396,7 +396,7 @@ class SearchClass:
         for c_num in range(9):
             keyword = 'color'+str(c_num+1)
             if keyword in query_terms:
-                Or_list += [Term(keyword,x.text) for x in query_terms[keyword]]
+                Or_list += [Term(keyword,x) for x in query_terms[keyword]]
         Range_dict = {'low':[0,100],'medium':[70,185],'high':[155,255]}
         for b in ['brightness','contrast','saturation']:
             # for textual query

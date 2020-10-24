@@ -373,6 +373,11 @@
         </div>
     </div>
     <div id='images'>
+        <div id='submit'>
+            Result id: <textarea name="submit_id" id="submit_id" cols="20" rows="1"></textarea>
+            <input name="Submit" type="submit" class="myButton" value="Submit">
+            <p id='submit_p'>Submission system feedback:</p>
+        </div>
         <ul id='image_list'>
         </ul>
         <div id="c_center">
@@ -400,6 +405,10 @@
     var extra_info = all_data['extra_info'];
     for (var key in form_data){
         console.log(key);
+        if(key=='submit_result'){
+            inputDiv = document.getElementById("submit_p");
+            inputDiv.innerHTML = 'Submission system feedback: '+form_data[key];
+        }
         var inputDiv = document.getElementById(key);
         if(inputDiv==null){
             inputDiv = document.getElementsByName(key);
